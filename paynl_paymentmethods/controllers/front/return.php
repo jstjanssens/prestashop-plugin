@@ -57,7 +57,7 @@ class paynl_paymentmethodsReturnModuleFrontController extends ModuleFrontControl
                 if(!empty($result['real_order_id'])){
                     Tools::redirect('index.php?controller=order&submitReorder=Reorder&id_order='.$result['real_order_id']);
                 }else {
-                    Tools::redirect('/order');
+                    Tools::redirect('index.php?controller=order');
                 }
             }
             if ($result['state'] == 'PENDING') {
