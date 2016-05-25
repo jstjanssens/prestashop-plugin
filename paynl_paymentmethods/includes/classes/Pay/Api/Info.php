@@ -8,7 +8,7 @@ class Pay_Api_Info extends Pay_Api {
      *
      * @var string The version of the api
      */
-    protected $_version = 'v3';
+    protected $_version = 'v5';
     /**
      *
      * @var string The controller of the api

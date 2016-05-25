@@ -66,7 +66,9 @@ class Pay_Helper_Transaction {
         $apiInfo->setTransactionId($transactionId);
 
         $result = $apiInfo->doRequest();
-        $transactionAmount = $result['paymentDetails']['paidAmount'];
+
+
+        $transactionAmount = $result['paymentDetails']['paidCurrenyAmount'];
 
         $stateId = $result['paymentDetails']['state'];
 
@@ -135,14 +137,9 @@ class Pay_Helper_Transaction {
 
             $paymentMethodName = $module->getPaymentMethodName($transaction['option_id']);
 
+      
+            $paidAmount = $transactionAmount / 100;
             
-            // als de valuta afwijkt, sturen we het originele orderbedrag mee als betaald bedrag, omdat anders prestashop in payment error schiet
-            $objCurrency = new CurrencyCore($currency);
-            if($objCurrency->iso_code != 'EUR'){
-                $paidAmount = $orderTotal+$extraFee;
-            } else {
-                $paidAmount = $transactionAmount / 100;
-            }
 
 
             $module->validateOrderPay((int) $cart->id, $id_order_state, $paidAmount, $extraFee, $paymentMethodName, NULL, array('transaction_id' => $transactionId), (int) $currency, false, $customer->secure_key);
