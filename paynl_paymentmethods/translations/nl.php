@@ -19,6 +19,8 @@ $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_6d83fe3c2593f45
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_7c07e4dabdbfc97696f3e793b4ef844b'] = 'Lager getal betekend belangrijker';
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_f0aaaae189e9c7711931a65ffcd22543'] = 'Betaalmethode';
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_a240fa27925a635b08dc28c9e4f9216d'] = 'Bestelling';
+$_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_4457f1b3cf95b38c6934bec26b2c9d20'] = 'Min. bedrag';
+$_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_bb47226c752434972106b23f86eff56b'] = 'Max. bedrag';
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_09a9ee6692aff45ed9a3bb1c4767c969'] = 'Extra kosten vast';
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_489acbfc9724eb9af3e6b0a44f2ce94e'] = 'Extra kosten percentage';
 $_MODULE['<{paynl_paymentmethods}prestashop>paynl_paymentmethods_5632f21957d92c5caa6bd0434ec69d80'] = 'Extra kosten max';

@@ -10,7 +10,7 @@ class paynl_paymentmethods extends PaymentModule {
     public function __construct() {
         $this->name = 'paynl_paymentmethods';
         $this->tab = 'payments_gateways';
-        $this->version = '3.3.0';
+        $this->version = '3.3.1';
         $this->_postErrors = array();
 		$this->module_key = '6c2f48f238008e8f68271f5e4763d308';
 
@@ -201,6 +201,12 @@ class paynl_paymentmethods extends PaymentModule {
                 $methodOrder = array();
             }
 
+            $minAmount = Configuration::get('PAYNL_PAYMENT_MIN');
+            $minAmount = @unserialize($minAmount);
+
+            $maxAmount = Configuration::get('PAYNL_PAYMENT_MAX');
+            $maxAmount = @unserialize($maxAmount);
+
             $countryExceptions = Configuration::get('PAYNL_COUNTRY_EXCEPTIONS');
             $countryExceptions = @unserialize($countryExceptions);
             if ($countryExceptions == false) {
@@ -238,6 +244,16 @@ class paynl_paymentmethods extends PaymentModule {
             foreach (array_keys($methodOrder) as $iProfileId) {
                 foreach ($activeProfilesTemp as $iKey => $arrActiveProfile) {
                     if ($arrActiveProfile['id'] == $iProfileId) {
+                        $minAmountForPP = @$minAmount[$iProfileId];
+                        $maxAmountForPP = @$maxAmount[$iProfileId];
+
+                        if(!empty($minAmountForPP) && ($minAmountForPP*100) > $intOrderAmount){
+                            continue;
+                        }
+                        if(!empty($maxAmountForPP) && ($maxAmountForPP*100) < $intOrderAmount){
+                            continue;
+                        }
+
                         $arrActiveProfile['name'] = $this->getPaymentMethodName($iProfileId);
                         $arrActiveProfile['extraCosts'] = number_format($this->getExtraCosts($arrActiveProfile['id'], $intOrderAmount / 100), 2);
                         array_push($activeProfiles, $arrActiveProfile);
@@ -309,6 +325,12 @@ class paynl_paymentmethods extends PaymentModule {
                 if(isset($_POST['profileName'])){                
                     Configuration::updateValue('PAYNL_PAYMENT_METHOD_NAME', serialize($_POST['profileName']));
                 }
+                if(isset($_POST['minAmount'])){
+                    Configuration::updateValue('PAYNL_PAYMENT_MIN', serialize($_POST['minAmount']));
+                }
+                if(isset($_POST['maxAmount'])){
+                    Configuration::updateValue('PAYNL_PAYMENT_MAX', serialize($_POST['maxAmount']));
+                }
                 
                 if (isset($_POST['validateOnStart'])) {
                     Configuration::updateValue('PAYNL_VALIDATE_ON_START', serialize($_POST['validateOnStart']));
@@ -368,6 +390,8 @@ class paynl_paymentmethods extends PaymentModule {
         $arrConfig[] = 'PAYNL_PAYMENT_EXTRA_COSTS';
         $arrConfig[] = 'PAYNL_VALIDATE_ON_START';
         $arrConfig[] = 'PAYNL_PAYMENT_METHOD_NAME';
+        $arrConfig[] = 'PAYNL_PAYMENT_MIN';
+        $arrConfig[] = 'PAYNL_PAYMENT_MAX';
 
         $conf = Configuration::getMultiple($arrConfig);
 
@@ -379,6 +403,11 @@ class paynl_paymentmethods extends PaymentModule {
         $success = array_key_exists('success', $_POST) ? $_POST['success'] : (array_key_exists('PAYNL_SUCCESS', $conf) ? $conf['PAYNL_SUCCESS'] : '2');
         $amountnotvalid = array_key_exists('amountnotvalid', $_POST) ? $_POST['amountnotvalid'] : (array_key_exists('PAYNL_AMOUNTNOTVALID', $conf) ? $conf['PAYNL_AMOUNTNOTVALID'] : '1');
         $cancel = array_key_exists('cancel', $_POST) ? $_POST['cancel'] : (array_key_exists('PAYNL_CANCEL', $conf) ? $conf['PAYNL_CANCEL'] : '6');
+
+        $minAmount = (array_key_exists('PAYNL_PAYMENT_MIN', $conf) ? $conf['PAYNL_PAYMENT_MIN'] : '');
+        $maxAmount = (array_key_exists('PAYNL_PAYMENT_MAX', $conf) ? $conf['PAYNL_PAYMENT_MAX'] : '');
+        if($minAmount) $minAmount = unserialize($minAmount); else $minAmount = array();
+        if($maxAmount) $maxAmount = unserialize($maxAmount); else $maxAmount = array();
 
         // Get states
         $states = OrderState::getOrderStates($this->context->language->id);
@@ -451,6 +480,10 @@ class paynl_paymentmethods extends PaymentModule {
             $extraCosts = (array_key_exists('PAYNL_PAYMENT_EXTRA_COSTS', $conf) ? $conf['PAYNL_PAYMENT_EXTRA_COSTS'] : '');
             $validateOnStart = (array_key_exists('PAYNL_VALIDATE_ON_START', $conf) ? $conf['PAYNL_VALIDATE_ON_START'] : '');
 
+
+
+
+
             if (strlen($profilesOrder) == 0) {
                 $profilesOrder = array();
             } else {
@@ -513,6 +546,8 @@ class paynl_paymentmethods extends PaymentModule {
             $exceptions.= '<br /><h2 class="space">' . $this->l('Payment priority') . '</h2>';
             $exceptions.= '<p>' . $this->l('Lower priority is more important') . '</p>';
             $exceptions.='<table border="1"><tr><th>' . $this->l('Payment method') . '</th><th>' . $this->l('Order') . '</th>';
+            $exceptions.= '<th>' . $this->l('Min. amount') . '</th>';
+            $exceptions.= '<th>' . $this->l('Max. amount') . '</th>';
             $exceptions.= '<th>' . $this->l('Extra costs fixed') . '</th>';
             $exceptions.= '<th>' . $this->l('Extra costs percentage') . '</th>';
             $exceptions.= '<th>' . $this->l('Extra costs max') . '</th>';
@@ -552,6 +587,10 @@ class paynl_paymentmethods extends PaymentModule {
                 $percentage = @$extraCosts[$profile['id']]['percentage'];
                 $max = @$extraCosts[$profile['id']]['max'];
 
+
+
+                $exceptions .= '<td><input name="minAmount[' . $profile['id'] . ']" type="text" value="' . $minAmount[$profile['id']] . '" /></td>';
+                $exceptions .= '<td><input name="maxAmount[' . $profile['id'] . ']" type="text" value="' . $maxAmount[$profile['id']] . '" /></td>';
                 $exceptions .= '<td><input name="payExtraCosts[' . $profile['id'] . '][fixed]" type="text" value="' . $fixed . '" /></td>';
                 $exceptions .= '<td><input name="payExtraCosts[' . $profile['id'] . '][percentage]"  type="text" value="' . $percentage . '" /></td>';
                 $exceptions .= '<td><input name="payExtraCosts[' . $profile['id'] . '][max]"  type="text" value="' . $max . '" /></td>';
